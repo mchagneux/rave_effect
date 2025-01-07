@@ -1,0 +1,6 @@
+[submodule "JUCE"]
+	path = JUCE
+	url = git@github.com:juce-framework/JUCE.git
+[submodule "choc"]
+	path = choc
+	url = git@github.com:Tracktion/choc.git
