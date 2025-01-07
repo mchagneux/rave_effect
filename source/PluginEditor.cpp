@@ -6,8 +6,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     : AudioProcessorEditor (&p), processorRef (p)
 {
     juce::ignoreUnused (processorRef);
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
+
+    modelChooser.loadModelCallback = [&p] (const std::string& modelFileName){ p.raveProcessor.loadModel(modelFileName) ; };
+    addAndMakeVisible(modelChooser);
     setSize (400, 300);
 }
 
@@ -28,6 +29,12 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 
 void AudioPluginAudioProcessorEditor::resized()
 {
+
+    auto area = getLocalBounds(); 
+
+    auto modelChooserArea = area.removeFromBottom((int) (area.toFloat().getHeight() / 6.0f));
+
+    modelChooser.setBounds(modelChooserArea);
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
 }

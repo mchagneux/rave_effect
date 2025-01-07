@@ -31,7 +31,8 @@ target_sources(${TARGET_NAME}
     PRIVATE
         source/PluginEditor.cpp
         source/PluginProcessor.cpp
-        source/RaveProcessor.cpp)
+        source/RaveProcessor.cpp
+        source/ModelChooser.cpp)
 
 
 target_compile_definitions(${TARGET_NAME}
@@ -47,6 +48,7 @@ target_link_libraries(${TARGET_NAME}
         ${TORCH_LIBRARIES}
         juce::juce_audio_utils
         juce::juce_dsp
+        juce::juce_gui_basics
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
