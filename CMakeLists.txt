@@ -22,7 +22,7 @@ juce_add_plugin(${TARGET_NAME}
     PLUGIN_MANUFACTURER_CODE Juce               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE Dem0                            # A unique four-character plugin id with exactly one upper-case character
                                                 # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
-    FORMATS VST3 Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
+    FORMATS Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "${TARGET_NAME}")        # The name of the final executable, which can differ from the target name
 
 set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17)
@@ -30,7 +30,8 @@ set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17)
 target_sources(${TARGET_NAME}
     PRIVATE
         source/PluginEditor.cpp
-        source/PluginProcessor.cpp)
+        source/PluginProcessor.cpp
+        source/RaveProcessor.cpp)
 
 
 target_compile_definitions(${TARGET_NAME}
@@ -43,8 +44,9 @@ target_compile_definitions(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
     PRIVATE
-        "${TORCH_LIBRARIES}"
+        ${TORCH_LIBRARIES}
         juce::juce_audio_utils
+        juce::juce_dsp
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
@@ -57,5 +59,6 @@ add_custom_command(TARGET ${TARGET_NAME}
                     POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     ${TORCH_DLLS}
-                    $<TARGET_FILE_DIR:${TARGET_NAME}>)
+                    $<TARGET_FILE_DIR:${TARGET_NAME}>/Standalone)
+                    
 # endif (MSVC)

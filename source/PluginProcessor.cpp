@@ -12,6 +12,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                      #endif
                        )
 {
+
+    // raveProcessor.loadModel("E:/audio_dev/rave_effect/models/sol_ordinario.ts");
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
