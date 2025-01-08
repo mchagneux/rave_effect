@@ -1,7 +1,7 @@
-#pragma once 
 #include "./ModelChooser.h"
+#include "./Identifiers.h"
 
-ModelChooser::ModelChooser()
+ModelChooser::ModelChooser(const juce::ValueTree& s): state(s)
 {
     loadButton.setButtonText("Load...");
     loadButton.onClick = [&] ()
@@ -12,15 +12,15 @@ ModelChooser::ModelChooser()
                                                 juce::File::getSpecialLocation (juce::File::userHomeDirectory),
                                                 "*.ts");
     
-        auto folderChooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectDirectories;
+        auto chooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
     
-        fileChooser->launchAsync (folderChooserFlags, [this] (const juce::FileChooser& chooser)
+        fileChooser->launchAsync (chooserFlags, [&] (const juce::FileChooser& chooser)
         {
     
-            if(loadModelCallback){
-                
-                loadModelCallback (chooser.getResult().getFileName().toStdString());
-            } 
+            auto file = chooser.getResult();
+            if (file.existsAsFile()){
+                state.setProperty(fullModelPath, file.getFullPathName(), nullptr); 
+            }
         });
         
     }; 

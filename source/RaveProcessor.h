@@ -2,18 +2,18 @@
 #include <torch/torch.h>
 #include <torch/script.h>
 #include <juce_dsp/juce_dsp.h>
+#include <juce_data_structures/juce_data_structures.h>
 
-
-struct RaveProcessor 
+struct RaveProcessor : private juce::ValueTree::Listener
 {
 public:
-    RaveProcessor(); 
+    RaveProcessor(const juce::ValueTree& state); 
     ~RaveProcessor();
 
     void process(juce::dsp::ProcessContextReplacing<float> context);
     void prepare(const juce::dsp::ProcessSpec& context); 
     void reset();
-    bool loadModel(const std::string& rave_model_file); 
+    bool loadModel(); 
     torch::Tensor sample_prior(const int n_steps, const float temperature);
     torch::Tensor encode(const torch::Tensor input);
 
@@ -36,19 +36,37 @@ public:
     at::Tensor getLatentBuffer();
     bool hasMethod(const std::string& method_name) const;
 
+
+
+
 private: 
+
+    void 	valueTreePropertyChanged (juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier &property); 
+ 
+    void 	valueTreeChildAdded (juce::ValueTree &, juce::ValueTree &) {}
+ 
+    void 	valueTreeChildRemoved (juce::ValueTree &, juce::ValueTree &, int ) {}
+ 
+    void 	valueTreeChildOrderChanged (juce::ValueTree &, int , int ) {}
+ 
+    void 	valueTreeParentChanged (juce::ValueTree &) {}
+ 
+    void 	valueTreeRedirected (juce::ValueTree &) {}
+
+    juce::ValueTree state; 
     torch::jit::Module model; 
     int modelSampleRate;
     int latent_size;
     bool has_prior = false;
     bool stereo = false;
-    juce::String model_path;
     at::Tensor encode_params;
     at::Tensor decode_params;
     at::Tensor prior_params;
     at::Tensor latent_buffer;
     std::vector<torch::jit::IValue> inputs_rave;
     juce::Range<float> validBufferSizeRange;
+
+
 };
 
 

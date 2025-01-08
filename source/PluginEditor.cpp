@@ -3,11 +3,10 @@
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p)
-    : AudioProcessorEditor (&p), processorRef (p)
+    : AudioProcessorEditor (&p), processorRef (p), modelChooser(p.state)
 {
     juce::ignoreUnused (processorRef);
 
-    modelChooser.loadModelCallback = [&p] (const std::string& modelFileName){ p.raveProcessor.loadModel(modelFileName) ; };
     addAndMakeVisible(modelChooser);
     setSize (400, 300);
 }

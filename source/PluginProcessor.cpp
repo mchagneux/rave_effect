@@ -12,7 +12,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                      #endif
                        )
 {
-    
+    state.setProperty("fullModelPath", "E:/audio_dev/rave_effect/models/sol_ordinario.ts", nullptr); 
+    raveProcessor = std::make_unique<RaveProcessor> (state); 
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()

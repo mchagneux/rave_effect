@@ -3,6 +3,10 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "./RaveProcessor.h"
 //==============================================================================
+
+
+// static juce::Identifier stateID ("state");
+
 class AudioPluginAudioProcessor final : public juce::AudioProcessor
 {
 public:
@@ -41,11 +45,11 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    
-    RaveProcessor raveProcessor; 
+
+    juce::ValueTree state {"state"};  
+    std::unique_ptr<RaveProcessor> raveProcessor; 
 
 private:
-
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
 };

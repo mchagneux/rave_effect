@@ -1,23 +1,36 @@
 #include "./RaveProcessor.h"
+#include "./Identifiers.h"
+
 #define MAX_LATENT_BUFFER_SIZE 32
 #define BUFFER_LENGTH 32768
 // using namespace torch::indexing;
 
 
-RaveProcessor::RaveProcessor()
+RaveProcessor::RaveProcessor(const juce::ValueTree& s): state(s)
 {
 
     torch::jit::getProfilingMode() = false;
     c10::InferenceMode guard;
     torch::jit::setGraphExecutorOptimize(true);
+    state.addListener(this);
   
 }
 
 
 RaveProcessor::~RaveProcessor()
 {
-
+    state.removeListener(this);
 }
+
+
+void RaveProcessor::valueTreePropertyChanged (juce::ValueTree &, const juce::Identifier &property) 
+{
+    if (property == fullModelPath)
+    {
+        juce::MessageManager::callAsync([&] {loadModel();});
+    }
+}
+
 
 void RaveProcessor::process(juce::dsp::ProcessContextReplacing<float> context)
 {
@@ -39,8 +52,9 @@ void RaveProcessor::prepare(const juce::dsp::ProcessSpec & spec)
 
 }
 
-bool RaveProcessor::loadModel(const std::string& rave_model_file)
+bool RaveProcessor::loadModel()
 {
+    auto rave_model_file = state.getProperty(fullModelPath).toString().toStdString();
     try {
         c10::InferenceMode guard;
         model = torch::jit::load(rave_model_file);
@@ -48,11 +62,10 @@ bool RaveProcessor::loadModel(const std::string& rave_model_file)
     catch (const c10::Error &e) {
         std::cerr << e.what();
         std::cerr << e.msg();
-        std::cerr << "error loading the model\n";
+        std::cerr << "Error loading the model\n";
         return false;
     }
 
-    model_path = juce::String(rave_model_file);
     auto named_buffers = model.named_buffers();
     auto named_attributes = model.named_attributes();
     has_prior = false;
@@ -143,6 +156,7 @@ bool RaveProcessor::loadModel(const std::string& rave_model_file)
     inputs_rave.clear();
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
+    return true; 
 }
 
 
