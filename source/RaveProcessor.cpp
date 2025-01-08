@@ -1,19 +1,43 @@
 #include "./RaveProcessor.h"
 #include "./Identifiers.h"
 
+
 #define MAX_LATENT_BUFFER_SIZE 32
 #define BUFFER_LENGTH 32768
 // using namespace torch::indexing;
 
 
-RaveProcessor::RaveProcessor(const juce::ValueTree& s): state(s)
+RaveProcessor::RaveProcessor(const juce::ValueTree& s):  juce::Thread("Rave Thread"), state(s)
 {
 
+    outputData = new float * [1]; 
+
+    
     torch::jit::getProfilingMode() = false;
     c10::InferenceMode guard;
     torch::jit::setGraphExecutorOptimize(true);
     state.addListener(this);
-  
+    startThread(); 
+}
+
+void RaveProcessor::run() 
+
+{
+    while (!threadShouldExit())
+    {
+        if(inputSamples.copyAvailableData(raveInputBufferView))
+        {
+            // inputs_rave.clear();
+            // inputs_rave.push_back(torch::from_blob(raveInputBufferView.getChannelPointer(0), {1, 1, getModelRatio()})); 
+    
+            // auto outputPtr = model.forward(inputs_rave).toTensor().data_ptr(); 
+            // outputData[0] = static_cast<float*> (outputPtr); 
+            // auto outputAsBufferView = juce::dsp::AudioBlock<float>(outputData, 1, getModelRatio()); 
+            // outputSamples.addAudioData(outputAsBufferView); 
+            outputSamples.addAudioData(raveInputBufferView);
+        } 
+        
+    }
 }
 
 
@@ -34,12 +58,20 @@ void RaveProcessor::valueTreePropertyChanged (juce::ValueTree &, const juce::Ide
 
 void RaveProcessor::process(juce::dsp::ProcessContextReplacing<float> context)
 {
-    auto buffer = context.getOutputBlock(); 
+    
+    if(!isLoaded.load()) return; 
 
-    auto torchInputs = torch::from_blob(buffer.getChannelPointer(0), buffer.getNumSamples()); 
+    inputSamples.addAudioData(context.getOutputBlock().getSingleChannelBlock(0));  
 
-    // module.forward(torchInputs);
+    auto buffer = context.getOutputBlock().getSingleChannelBlock(0); 
 
+    auto monoBufferView = juce::dsp::AudioBlock<float>(monoBuffer); 
+    outputSamples.copyAvailableData(monoBufferView);
+
+    buffer.getSingleChannelBlock(0).copyFrom(monoBuffer); 
+    buffer.getSingleChannelBlock(1).copyFrom(monoBuffer); 
+
+    
 }
 
 void RaveProcessor::reset()
@@ -49,7 +81,12 @@ void RaveProcessor::reset()
 
 void RaveProcessor::prepare(const juce::dsp::ProcessSpec & spec)
 {
-
+    engineSampleRate = (int) spec.sampleRate; 
+    engineBlockSize = (int) spec.maximumBlockSize; 
+    engineNumChannels = (int) spec.numChannels; 
+    monoBuffer.setSize(1, engineBlockSize, false, true, true); 
+    inputSamples.setup(engineSampleRate); 
+    outputSamples.setup(engineSampleRate); 
 }
 
 bool RaveProcessor::loadModel()
@@ -156,6 +193,7 @@ bool RaveProcessor::loadModel()
     inputs_rave.clear();
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
+    isLoaded.store(true); 
     return true; 
 }
 
