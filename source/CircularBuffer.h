@@ -52,7 +52,7 @@ public:
 
 private:
     juce::AbstractFifo abstractFifo { 48000 };
-    juce::AudioBuffer<float> internalBuffer; 
+    juce::AudioBuffer<float> internalBuffer {1, 48000}; 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CircularBuffer)
 };

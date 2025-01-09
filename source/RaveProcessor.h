@@ -65,15 +65,14 @@ private:
     juce::Range<float> validBufferSizeRange;
 
     std::vector<torch::IValue> inputs_rave; 
-    int engineSampleRate; 
-    int engineBlockSize;
+    int engineSampleRate = 44100; 
+    int engineBlockSize = 2048;
     int engineNumChannels; 
 
     CircularBuffer<float> inputSamples; 
     CircularBuffer<float> outputSamples; 
-    juce::AudioBuffer<float> monoBuffer; 
-    juce::AudioBuffer<float> raveInputBuffer; 
-    juce::dsp::AudioBlock<float> raveInputBufferView {raveInputBuffer}; 
+    juce::AudioBuffer<float> monoBuffer {1, 2048}; 
+    juce::AudioBuffer<float> raveInputBuffer{1, 512}; 
     float ** outputData; 
 };
 

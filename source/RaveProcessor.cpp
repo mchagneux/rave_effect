@@ -25,16 +25,21 @@ void RaveProcessor::run()
 {
     while (!threadShouldExit())
     {
+        auto raveInputBufferView = juce::dsp::AudioBlock<float>(raveInputBuffer);
         if(inputSamples.copyAvailableData(raveInputBufferView))
         {
-            // inputs_rave.clear();
-            // inputs_rave.push_back(torch::from_blob(raveInputBufferView.getChannelPointer(0), {1, 1, getModelRatio()})); 
-    
-            // auto outputPtr = model.forward(inputs_rave).toTensor().data_ptr(); 
-            // outputData[0] = static_cast<float*> (outputPtr); 
-            // auto outputAsBufferView = juce::dsp::AudioBlock<float>(outputData, 1, getModelRatio()); 
-            // outputSamples.addAudioData(outputAsBufferView); 
-            outputSamples.addAudioData(raveInputBufferView);
+            if (!isLoaded.load()) outputSamples.addAudioData(raveInputBufferView);
+            else
+            {
+                inputs_rave.clear();
+                inputs_rave.push_back(torch::from_blob(raveInputBufferView.getChannelPointer(0), {1, 1, getModelRatio()})); 
+        
+                auto outputPtr = model.forward(inputs_rave).toTensor().data_ptr(); 
+                outputData[0] = static_cast<float*> (outputPtr); 
+                auto outputAsBufferView = juce::dsp::AudioBlock<float>(outputData, 1, getModelRatio()); 
+                outputSamples.addAudioData(outputAsBufferView); 
+            }
+
         } 
         
     }
@@ -59,17 +64,16 @@ void RaveProcessor::valueTreePropertyChanged (juce::ValueTree &, const juce::Ide
 void RaveProcessor::process(juce::dsp::ProcessContextReplacing<float> context)
 {
     
-    if(!isLoaded.load()) return; 
+    // if(!isLoaded.load()) return; 
+    auto leftChannelBuffer = context.getOutputBlock().getSingleChannelBlock(0); 
 
-    inputSamples.addAudioData(context.getOutputBlock().getSingleChannelBlock(0));  
-
-    auto buffer = context.getOutputBlock().getSingleChannelBlock(0); 
+    inputSamples.addAudioData(leftChannelBuffer);  
 
     auto monoBufferView = juce::dsp::AudioBlock<float>(monoBuffer); 
     outputSamples.copyAvailableData(monoBufferView);
 
-    buffer.getSingleChannelBlock(0).copyFrom(monoBuffer); 
-    buffer.getSingleChannelBlock(1).copyFrom(monoBuffer); 
+    context.getOutputBlock().getSingleChannelBlock(0).copyFrom(monoBuffer); 
+    context.getOutputBlock().getSingleChannelBlock(1).copyFrom(monoBuffer); 
 
     
 }
