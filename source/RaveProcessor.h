@@ -73,7 +73,7 @@ private:
     CircularBuffer<float> outputSamples; 
     juce::AudioBuffer<float> monoBuffer {1, 2048}; 
     juce::AudioBuffer<float> raveInputBuffer{1, 512}; 
-    float ** outputData; 
+    juce::AudioBuffer<float> raveOutputBuffer {1, 512}; 
 };
 
 

@@ -9,15 +9,13 @@
 
 RaveProcessor::RaveProcessor(const juce::ValueTree& s):  juce::Thread("Rave Thread"), state(s)
 {
-
-    outputData = new float * [1]; 
-
     
     torch::jit::getProfilingMode() = false;
+    
     c10::InferenceMode guard;
     torch::jit::setGraphExecutorOptimize(true);
     state.addListener(this);
-    startThread(); 
+    startThread(juce::Thread::Priority::highest); 
 }
 
 void RaveProcessor::run() 
@@ -28,15 +26,19 @@ void RaveProcessor::run()
         auto raveInputBufferView = juce::dsp::AudioBlock<float>(raveInputBuffer);
         if(inputSamples.copyAvailableData(raveInputBufferView))
         {
-            if (!isLoaded.load()) outputSamples.addAudioData(raveInputBufferView);
+            if (!isLoaded.load()) 
+                outputSamples.addAudioData(raveInputBufferView);
             else
             {
+                c10::InferenceMode guard(true);
+
                 inputs_rave.clear();
                 inputs_rave.push_back(torch::from_blob(raveInputBufferView.getChannelPointer(0), {1, 1, getModelRatio()})); 
         
-                auto outputPtr = model.forward(inputs_rave).toTensor().data_ptr(); 
-                outputData[0] = static_cast<float*> (outputPtr); 
-                auto outputAsBufferView = juce::dsp::AudioBlock<float>(outputData, 1, getModelRatio()); 
+                auto output = model.forward(inputs_rave).toTensor();
+
+                raveOutputBuffer.copyFrom(0, 0, output.data_ptr<float>(), raveOutputBuffer.getNumSamples());
+                auto outputAsBufferView = juce::dsp::AudioBlock<float>(raveOutputBuffer);
                 outputSamples.addAudioData(outputAsBufferView); 
             }
 
@@ -70,12 +72,13 @@ void RaveProcessor::process(juce::dsp::ProcessContextReplacing<float> context)
     inputSamples.addAudioData(leftChannelBuffer);  
 
     auto monoBufferView = juce::dsp::AudioBlock<float>(monoBuffer); 
-    outputSamples.copyAvailableData(monoBufferView);
-
-    context.getOutputBlock().getSingleChannelBlock(0).copyFrom(monoBuffer); 
-    context.getOutputBlock().getSingleChannelBlock(1).copyFrom(monoBuffer); 
-
     
+    if(outputSamples.copyAvailableData(monoBufferView))
+    {
+        context.getOutputBlock().getSingleChannelBlock(0).copyFrom(monoBuffer); 
+        context.getOutputBlock().getSingleChannelBlock(1).copyFrom(monoBuffer); 
+    }
+   
 }
 
 void RaveProcessor::reset()
@@ -194,6 +197,10 @@ bool RaveProcessor::loadModel()
               << std::endl;
     std::cout << "\tRatio: " << getModelRatio() << std::endl;
     c10::InferenceMode guard;
+
+    raveInputBuffer.setSize(1, getModelRatio(), false, true, false); 
+    raveOutputBuffer.setSize(1, getModelRatio(), false, true, false); 
+
     inputs_rave.clear();
     inputs_rave.push_back(torch::ones({1, 1, getModelRatio()}));
     resetLatentBuffer();
