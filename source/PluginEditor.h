@@ -2,6 +2,8 @@
 
 #include "PluginProcessor.h"
 #include "./ModelChooser.h"
+#include <juce_gui_extra/juce_gui_extra.h>
+#include "../choc/gui/choc_WebView.h"
 
 //==============================================================================
 class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
@@ -19,6 +21,8 @@ private:
     // access the processor object that created it.
     AudioPluginAudioProcessor& processorRef;
     ModelChooser modelChooser; 
+    choc::ui::WebView webView; 
+    std::unique_ptr<juce::Component> webViewHolder; 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
 };
