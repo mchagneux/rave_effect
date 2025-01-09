@@ -4,9 +4,16 @@ set(TARGET_NAME RAVE_EFFECT)
 project(${TARGET_NAME} VERSION 0.0.1)
 
 add_subdirectory(JUCE)                    # If you've put JUCE in a subdirectory called JUCE
-list(APPEND CMAKE_PREFIX_PATH "libtorch")
-find_package(Torch REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
+if(CMAKE_BUILD_TYPE EQUAL "DEBUG")
+    list(APPEND CMAKE_PREFIX_PATH "libtorch-debug")
+    find_package(Torch REQUIRED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+else()
+    list(APPEND CMAKE_PREFIX_PATH "libtorch")
+    find_package(Torch REQUIRED)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+endif()
 
 juce_add_plugin(${TARGET_NAME}
     # VERSION ...                               # Set this if the plugin version is different to the project version

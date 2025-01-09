@@ -1,4 +1,5 @@
 libtorch/
+libtorch-debug/
 build/
 .cache/
 models/
