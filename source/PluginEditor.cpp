@@ -7,6 +7,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     juce::ignoreUnused (processorRef);
     webViewHolder = choc::ui::createJUCEWebViewHolder(webView); 
 
+    webView.navigate("http://localhost:5173/");
+
     addAndMakeVisible(*webViewHolder); 
     addAndMakeVisible(modelChooser);
     setSize (1280, 720);
@@ -37,6 +39,4 @@ void AudioPluginAudioProcessorEditor::resized()
 
     modelChooser.setBounds(modelChooserArea);
     webViewHolder->setBounds(area); 
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
 }

@@ -32,8 +32,10 @@ void RaveProcessor::run()
             {
                 c10::InferenceMode guard(true);
 
-                inputs_rave.clear();
-                inputs_rave.push_back(torch::from_blob(raveInputBufferView.getChannelPointer(0), {1, 1, getModelRatio()})); 
+
+                inputs_rave[0] = torch::from_blob(raveInputBufferView.getChannelPointer(0), {1, 1, getModelRatio()});
+                // inputs_rave.clear();
+                // inputs_rave.push_back(torch::from_blob(raveInputBufferView.getChannelPointer(0), {1, 1, getModelRatio()})); 
         
                 auto output = model.forward(inputs_rave).toTensor();
 
