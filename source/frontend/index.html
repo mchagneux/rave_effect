@@ -1,13 +1,24 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
   <head>
+    <title>Rive (JS) Quick Start</title>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
   </head>
+
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <!-- https://rive.app/community/2732-5606-clean-the-car/ -->
+    <canvas
+      style="
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        background-color: black;
+      "
+      id="rive-canvas"
+    ></canvas>
+    <script src="/src/index.js" type="module"></script>
   </body>
 </html>
+
+
+
