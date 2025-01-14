@@ -46,6 +46,12 @@ PARAMETER_ID (eqFilterCutoff2)
 PARAMETER_ID (eqFilterQ2)
 PARAMETER_ID (eqFilterGain2)
 PARAMETER_ID (eqFilterType2)
+PARAMETER_ID(gain)
+PARAMETER_ID(reverbDryWet)
+PARAMETER_ID(phaserWet)
+PARAMETER_ID(neuralEnabled)
+
+
 #undef PARAMETER_ID
 
 } // namespace ID
@@ -72,12 +78,15 @@ struct NeuralParameters
             ID::neuralDryWet,
             "Dry / Wet",
             juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f),
-            1.0f))
+            1.0f)),
+        neuralEnabled(addToLayout<juce::AudioParameterBool>(layout, ID::neuralEnabled, "Neural Enabled", false))
     {
+
     }
 
     // juce::AudioParameterChoice& neuralBackend;
     Parameter& neuralDryWet;
+    juce::AudioParameterBool& neuralEnabled; 
 };
 
 struct FilterParameters
@@ -212,11 +221,37 @@ struct Parameters
               "neural",
               "Neural Processor",
               "|"))
+              
+        , gain (addToLayout<Parameter> (
+              layout,
+              ID::gain,
+              "Gain",
+              juce::NormalisableRange<float> (-10.0f, 0.0f),
+              0.0f,
+              getDbAttributes()))
+              ,
+        reverbWet (addToLayout<Parameter> (
+            layout,
+            ID::reverbDryWet,
+            "Dry / Wet",
+            juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f),
+            1.0f)),
+        phaserWet (addToLayout<Parameter> (
+            layout,
+            ID::phaserWet,
+            "Dry / Wet",
+            juce::NormalisableRange<float> (0.0f, 1.0f, 0.01f),
+            1.0f))
     {
+
     }
 
     PostProcessorParameters postProcessor;
     NeuralParameters neural;
+    Parameter& gain;
+    Parameter& reverbWet;
+    Parameter& phaserWet;
+
 };
 
 // struct State

@@ -9,6 +9,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     choc::ui::WebView::Options options; 
     options.enableDebugMode = true; 
     options.enableDebugInspector = true; 
+    options.transparentBackground = true;
 
     webView = std::make_unique<choc::ui::WebView>(options);
 
@@ -16,12 +17,28 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
 
     p.parameters.neural.neuralDryWet.addListener(this); 
     webView->navigate("localhost:5173");
-    // webView->bind("valueUpdated",[&p] (const choc::value::ValueView& args)-> choc::value::Value 
-    //     {   
-    //         p.parameters.neural.neuralDryWet.setValueNotifyingHost(args[0].get<double>());
-    //         return {};
-    //     }
-    // );
+
+    webView->bind("gainUpdated",[&p] (const choc::value::ValueView& args)-> choc::value::Value 
+        {   
+            p.parameters.gain.setValueNotifyingHost(args[0].get<double>());
+            return {};
+        }
+    );
+
+    webView->bind("reverbUpdated",[&p] (const choc::value::ValueView& args)-> choc::value::Value 
+        {   
+            p.parameters.reverbWet.setValueNotifyingHost(args[0].get<double>());
+            return {};
+        }
+    );
+
+    webView->bind("phaserUpdated",[&p] (const choc::value::ValueView& args)-> choc::value::Value 
+        {   
+            p.parameters.phaserWet.setValueNotifyingHost(args[0].get<double>());
+            return {};
+        }
+    );
+
 
     // webView->evaluateJavascript("updateValue(" + juce::String((int) (100 * (p.parameters.neural.neuralDryWet.get()))).toStdString() + ");");
 
@@ -34,7 +51,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     addAndMakeVisible(modelChooser);
     addAndMakeVisible(postProcessorControls);
     addAndMakeVisible(raveControls);
-    setSize (1280, 720);
+    setSize (640, 360);
     setResizable(true, true); 
 
     startTimer(20);
@@ -72,7 +89,7 @@ void AudioPluginAudioProcessorEditor::parameterGestureChanged(int, bool)
 void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    // g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll (juce::Colours::black);
 
     // g.setColour (juce::Colours::white);
     // g.setFont (15.0f);
@@ -84,17 +101,21 @@ void AudioPluginAudioProcessorEditor::resized()
 
     auto area = getLocalBounds(); 
 
-    auto raveArea = area.removeFromLeft(((int) (area.toFloat().getWidth() / 2.0f)));
+    auto topArea = area.removeFromTop((int) (getLocalBounds().toFloat().getHeight() / 6.0f));
+    auto topAreaLeft = topArea.removeFromLeft((int) (topArea.getWidth() / 2)); 
 
-    auto modelChooserArea = raveArea.removeFromBottom((int) (area.toFloat().getHeight() / 6.0f));
+    modelChooser.setBounds(topAreaLeft.reduced((int) (topArea.getWidth() / 4), (int) (topArea.getHeight() / 6)));
+    
+    raveControls.setBounds(topArea); 
 
     
-    modelChooser.setBounds(modelChooserArea);
+    auto postProcessorArea = area.removeFromLeft((int) (getLocalBounds().toFloat().getWidth() / 2.0f));
+    postProcessorControls.setBounds(postProcessorArea);
 
-    auto raveDryWetSliderArea = raveArea.removeFromBottom((int) (raveArea.toFloat().getHeight() / 6.0f)); 
-    raveControls.setBounds(raveDryWetSliderArea);
+    webViewHolder->setBounds(area); 
 
-    webViewHolder->setBounds(raveArea); 
+    // auto modelChooserArea = raveArea.removeFromBottom((int) (area.toFloat().getHeight() / 6.0f));
+    // modelChooser.setBounds(modelChooserArea);
 
-    postProcessorControls.setBounds(area);
+    // auto raveDryWetSliderArea = raveArea.removeFromBottom((int) (raveArea.toFloat().getHeight() / 6.0f)); 
 }

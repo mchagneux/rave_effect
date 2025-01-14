@@ -3,6 +3,7 @@
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 {
+    // parameters.gain.removeListener(this);
 }
 
 //==============================================================================
@@ -86,9 +87,9 @@ void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 
     raveProcessor.prepare(processSpec);
     postProcessor.prepare (processSpec);
-
-
-
+    gainProcessor.prepare(processSpec);
+    reverbProcessor.prepare(processSpec);
+    phaserProcessor.prepare(processSpec);
 
 }
 
@@ -98,7 +99,9 @@ void AudioPluginAudioProcessor::releaseResources()
     // spare memory, etc.
     raveProcessor.reset();
     postProcessor.reset();
-
+    gainProcessor.reset();
+    reverbProcessor.reset();
+    phaserProcessor.reset();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -128,6 +131,12 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                               juce::MidiBuffer& midiMessages)
 {
+    gainProcessor.setGainLinear(parameters.gain.get());
+    reverbParameters.wetLevel = parameters.reverbWet.get();
+    reverbParameters.dryLevel = 1.0f - parameters.reverbWet.get(); 
+    reverbProcessor.setParameters(reverbParameters);
+    phaserProcessor.setMix(parameters.phaserWet.get());
+
     juce::ignoreUnused (midiMessages);
 
     juce::ScopedNoDenormals noDenormals;
@@ -135,8 +144,12 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto block = juce::dsp::AudioBlock<float> (buffer);
     auto context = juce::dsp::ProcessContextReplacing<float> (block);
 
-    raveProcessor.process(context); 
+    if(parameters.neural.neuralEnabled.get()) raveProcessor.process(context); 
+
     postProcessor.process (context);
+    reverbProcessor.process(context);
+    phaserProcessor.process(context);
+    gainProcessor.process(context);
 
 }
 
@@ -173,3 +186,15 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new AudioPluginAudioProcessor();
 }
+
+
+// void AudioPluginAudioProcessor::parameterValueChanged(int parameterIndex, float newValue)
+// {
+//     if(parameterIndex == parameters.gain.getParameterIndex())
+//     {
+//         gainProcessor.setGainLinear(newValue);
+//     }
+
+// }
+
+// void AudioPluginAudioProcessor::parameterGestureChanged(int, bool) {}

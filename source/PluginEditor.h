@@ -13,18 +13,28 @@ struct RaveControls final : public juce::Component
 {
     explicit RaveControls (juce::AudioProcessorEditor& editorIn, const NeuralParameters& parameters)
         : sliderAttachment (parameters.neuralDryWet, dryWetSlider, nullptr)
-
     {
         sliderLabel.attachToComponent (&dryWetSlider, false);
         dryWetSlider.setSliderStyle (juce::Slider::SliderStyle::LinearBar);
         addAndMakeVisible (dryWetSlider);
         addAndMakeVisible (sliderLabel);
+        enabledLabel.attachToComponent(&enabledButton, false);
+        enabledButton.setClickingTogglesState(true);
+        enabledButton.onClick = [&] 
+        {
+            parameters.neuralEnabled.setValueNotifyingHost(enabledButton.getToggleState());
+        }; 
+        addAndMakeVisible(enabledButton);
+        addAndMakeVisible(enabledLabel);
     }
 
     void resized()
     {
         auto r = getLocalBounds();
-        dryWetSlider.setBounds (r);
+        auto dryWetSliderArea = r.removeFromLeft((int)(getWidth() / 2)); 
+
+        dryWetSlider.setBounds (dryWetSliderArea.reduced((int) (dryWetSliderArea.getWidth() / 4), (int) (dryWetSliderArea.getHeight() / 4)));
+        enabledButton.setBounds(r.reduced((int) (r.getWidth() / 4), (int) (r.getHeight() / 4))); 
     }
 
     // AttachedCombo backendType;
@@ -32,6 +42,10 @@ struct RaveControls final : public juce::Component
     juce::Slider dryWetSlider;
     juce::Label sliderLabel { "Dry/Wet" };
     juce::SliderParameterAttachment sliderAttachment;
+
+    juce::ToggleButton enabledButton;
+    juce::Label enabledLabel {"Enabled"}; 
+    bool lastClickedValue = false; 
 };
 
 

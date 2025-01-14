@@ -2,8 +2,7 @@ import "./styles.css";
 
 import * as rive from "@rive-app/canvas";
 
-
-let shouldUpdate = false; 
+let eventPlaying = "Idle"; 
 
 
 const layout = new rive.Layout({
@@ -36,7 +35,7 @@ function cleanUpRive() {
 const riveInstance = new rive.Rive({
   // Load a local riv `clean_the_car.riv` or upload your own!
   artbord: "Slider",
-  src: "slider.riv",
+  src: "slideraugmented.riv",
   // Be sure to specify the correct state machine (or animation) name
   stateMachines: "Loop", // Name of the State Machine to play
   canvas: riveCanvas,
@@ -49,35 +48,66 @@ const riveInstance = new rive.Rive({
   }
 });
 
-riveCanvas.addEventListener("mousedown", () => { shouldUpdate = true;})
-riveCanvas.addEventListener("mouseup", () => { shouldUpdate = false;})
-riveCanvas.addEventListener("mouseenter", () => { shouldUpdate = false;})
+
+
+function onRiveEventReceived(riveEvent) {
+  const eventData = riveEvent.data;
+  eventPlaying = eventData.name;
+  console.log(eventData.name);
+
+}
+
+riveInstance.on(rive.EventType.RiveEvent, onRiveEventReceived);
 
 riveCanvas.addEventListener(
     "mousemove",
     (event) => {
-        if(shouldUpdate){        
             const inputs = riveInstance.stateMachineInputs('Loop');
-            const posInput = inputs.find(i => i.name === 'Pos');
+
             const rect = event.target.getBoundingClientRect();
-            const mouseXRelative = (event.clientX - rect.left) / rect.width;
             const mouseYRelative = (event.clientY - rect.top) / rect.height;
-            console.log(`Relative Mouse Position: (${mouseXRelative.toFixed(2)}, ${mouseYRelative.toFixed(2)})`);     
-            posInput.value = 100 * (1 - mouseYRelative);
-            valueUpdated(1 - mouseYRelative);
-        }
+            const newValue = 100 * (1 - mouseYRelative);
+            if(eventPlaying == "InSlider1")
+            {
+                const posInput = inputs.find(i => i.name === 'Slider 1 Pos');
+                posInput.value = newValue;
+                reverbUpdated(1 - mouseYRelative);
+
+            }
+            else if(eventPlaying == "InSlider2")
+            {
+                const posInput = inputs.find(i => i.name === 'Slider 2 Pos');
+                posInput.value = newValue;
+                phaserUpdated(mouseYRelative);
+            }
+            else if(eventPlaying == "InSlider3")
+            {
+                
+                const posInput = inputs.find(i => i.name === 'Slider 3 Pos');
+                posInput.value = newValue;
+                gainUpdated(mouseYRelative);
+
+            }
+            else 
+            {
+                
+            }
+
+
     },
     false
 );
 
 
-function updateValue(newValue)
-{
-    const inputs = riveInstance.stateMachineInputs('Loop');
-    const posInput = inputs.find(i => i.name === 'Pos');
-    console.log(newValue);
-    posInput.value = newValue;
+// function updateValue(newValue)
+// {
+//     const inputs = riveInstance.stateMachineInputs('Loop');
+//     // const clickInSlider1Input = inputs.find(i => i.name === 'ClickInSlider1');
+//     const posInput = inputs.find(i => i.name === 'Slider 1 Pos');
 
-}
+//     // clickInSlider1Input.value = true;
+//     // posInput.value = newValue;
+//     // clickInSlider1Input.value = false;
+// }
 
-window.updateValue = updateValue;
+// window.updateValue = updateValue;

@@ -9,11 +9,11 @@
 
 // static juce::Identifier stateID ("state");
 
-class AudioPluginAudioProcessor final : public juce::AudioProcessor
+class AudioPluginAudioProcessor final : public juce::AudioProcessor//, public juce::AudioProcessorParameter::Listener
 {
 public:
     //==============================================================================
-    AudioPluginAudioProcessor(): AudioPluginAudioProcessor (juce::AudioProcessorValueTreeState::ParameterLayout {}) {};
+    AudioPluginAudioProcessor(): AudioPluginAudioProcessor (juce::AudioProcessorValueTreeState::ParameterLayout {}) {}
 
     ~AudioPluginAudioProcessor() override;
 
@@ -48,12 +48,18 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-
+    // void parameterValueChanged(int, float) override; 
+    // void parameterGestureChanged(int, bool) override; 
 
     Parameters parameters;
     juce::AudioProcessorValueTreeState apvts;
     PostProcessor postProcessor;
     RaveProcessor raveProcessor; 
+    juce::dsp::Gain<float> gainProcessor;
+    juce::dsp::Reverb reverbProcessor; 
+    juce::dsp::Reverb::Parameters reverbParameters;
+    juce::dsp::Phaser<float> phaserProcessor;
+
 
 private:
 
@@ -74,6 +80,7 @@ private:
 
         // , neuralProcessor (parameters.neural)
     { 
+        // parameters.gain.addListener(this);
         // apvts.state.addProperty()
     }
 
