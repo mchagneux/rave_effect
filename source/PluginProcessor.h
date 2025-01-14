@@ -1,7 +1,9 @@
 #pragma once
 
-#include <juce_audio_processors/juce_audio_processors.h>
+#include <JuceHeader.h>
 #include "./RaveProcessor.h"
+#include "./Parameters.h"
+#include "./PostProcessor.h"
 //==============================================================================
 
 
@@ -11,7 +13,8 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    AudioPluginAudioProcessor();
+    AudioPluginAudioProcessor(): AudioPluginAudioProcessor (juce::AudioProcessorValueTreeState::ParameterLayout {}) {};
+
     ~AudioPluginAudioProcessor() override;
 
     //==============================================================================
@@ -46,10 +49,35 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    juce::ValueTree state {"state"};  
-    std::unique_ptr<RaveProcessor> raveProcessor; 
+
+    Parameters parameters;
+    juce::AudioProcessorValueTreeState apvts;
+    PostProcessor postProcessor;
+    RaveProcessor raveProcessor; 
 
 private:
+
+    explicit AudioPluginAudioProcessor (
+        juce::AudioProcessorValueTreeState::ParameterLayout layout)
+        : AudioProcessor (BusesProperties()
+                     #if ! JucePlugin_IsMidiEffect
+                      #if ! JucePlugin_IsSynth
+                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                      #endif
+                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+                     #endif
+                       )
+        , parameters (layout)
+        , apvts (*this, nullptr, "Plugin", std::move (layout))
+        , postProcessor (parameters.postProcessor)
+        , raveProcessor(parameters.neural, apvts.state)
+
+        // , neuralProcessor (parameters.neural)
+    { 
+        // apvts.state.addProperty()
+    }
+
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
 };

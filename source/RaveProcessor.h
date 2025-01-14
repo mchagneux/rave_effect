@@ -1,19 +1,16 @@
 #pragma once 
 #include <torch/torch.h>
 #include <torch/script.h>
-#include <juce_dsp/juce_dsp.h>
-#include <juce_data_structures/juce_data_structures.h>
+#include <JuceHeader.h>
 #include "./CircularBuffer.h"
-
-struct RaveProcessor : private juce::ValueTree::Listener, public juce::Thread
+#include "./Parameters.h"
+struct RaveProcessor : private juce::ValueTree::Listener, public juce::Thread, private juce::AudioProcessorParameter::Listener
 {
 public:
-    RaveProcessor(const juce::ValueTree& state); 
-    ~RaveProcessor();
+    RaveProcessor(const NeuralParameters& params, juce::ValueTree& state);
+    ~RaveProcessor() override;
 
-
-
-    void run(); 
+    void run() override; 
     void process(juce::dsp::ProcessContextReplacing<float> context);
     void prepare(const juce::dsp::ProcessSpec& context); 
     void reset();
@@ -39,7 +36,10 @@ public:
     bool isStereo() const;
     at::Tensor getLatentBuffer();
     bool hasMethod(const std::string& method_name) const;
-
+    void modelPerform(); 
+    void raveProcess();
+    std::atomic<float> dryWetChanged = false; 
+    std::atomic<float> rmsLevel = 0.0f;
 
 private: 
 
@@ -50,7 +50,12 @@ private:
     void valueTreeParentChanged (juce::ValueTree &) {}
     void valueTreeRedirected (juce::ValueTree &) {}
 
-    juce::ValueTree state; 
+    void parameterValueChanged(int, float) override {}
+    void parameterGestureChanged(int, bool) override {}
+
+    const NeuralParameters& parameters;
+    juce::ValueTree state;
+
     torch::jit::Module model; 
     int modelSampleRate;
     int latent_size;
@@ -72,8 +77,10 @@ private:
     CircularBuffer<float> inputSamples; 
     CircularBuffer<float> outputSamples; 
     juce::AudioBuffer<float> monoBuffer {1, 2048}; 
-    juce::AudioBuffer<float> raveInputBuffer{1, 512}; 
-    juce::AudioBuffer<float> raveOutputBuffer {1, 512}; 
+    juce::AudioBuffer<float> raveInputBuffer{1, 4096}; 
+    juce::AudioBuffer<float> raveOutputBuffer {1, 4096}; 
+    juce::dsp::DryWetMixer<float> dryWetMixer; 
+
 };
 
 

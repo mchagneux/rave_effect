@@ -25,14 +25,18 @@ juce_add_plugin(${TARGET_NAME}
     NEEDS_MIDI_OUTPUT FALSE              # Does the plugin need midi output?
     IS_MIDI_EFFECT FALSE                 # Is this plugin a MIDI effect?
     # EDITOR_WANTS_KEYBOARD_FOCUS TRUE/FALSE    # Does the editor need keyboard focus?
-    COPY_PLUGIN_AFTER_BUILD FALSE        # Should the plugin be installed to a default location after building?
+    COPY_PLUGIN_AFTER_BUILD TRUE        # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE Juce               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE Dem0                            # A unique four-character plugin id with exactly one upper-case character
                                                 # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
     FORMATS Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "${TARGET_NAME}")        # The name of the final executable, which can differ from the target name
 
-set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17)
+
+juce_generate_juce_header(${TARGET_NAME})
+
+
+set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 20)
 
 target_sources(${TARGET_NAME}
     PRIVATE
@@ -55,8 +59,6 @@ target_link_libraries(${TARGET_NAME}
         ${TORCH_LIBRARIES}
         juce::juce_audio_utils
         juce::juce_dsp
-        juce::juce_gui_basics
-        juce::juce_core
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
@@ -70,5 +72,10 @@ add_custom_command(TARGET ${TARGET_NAME}
                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     ${TORCH_DLLS}
                     $<TARGET_FILE_DIR:${TARGET_NAME}>/Standalone)
-                    
-# endif (MSVC)
+
+# add_custom_command(TARGET ${TARGET_NAME}
+#                     POST_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#                     ${TORCH_DLLS}
+#                     $<TARGET_FILE_DIR:${TARGET_NAME}>/VST3)          
+# # endif (MSVC)

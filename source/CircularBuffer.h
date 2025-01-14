@@ -1,6 +1,6 @@
 #pragma once
 #include <fstream>
-#include <juce_dsp/juce_dsp.h>
+#include <JuceHeader.h>
 
 template <typename Type>
 struct CircularBuffer

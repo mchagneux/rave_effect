@@ -2,22 +2,71 @@
 #include "PluginEditor.h"
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p)
-    : AudioProcessorEditor (&p), processorRef (p), modelChooser(p.state)
+    : AudioProcessorEditor (&p), processorRef (p), modelChooser(p.apvts.state), postProcessorControls (*this, p.postProcessor), raveControls(*this, p.parameters.neural)
+
 {
     juce::ignoreUnused (processorRef);
-    webViewHolder = choc::ui::createJUCEWebViewHolder(webView); 
+    choc::ui::WebView::Options options; 
+    options.enableDebugMode = true; 
+    options.enableDebugInspector = true; 
 
-    webView.navigate("localhost:5173");
+    webView = std::make_unique<choc::ui::WebView>(options);
+
+    webViewHolder = choc::ui::createJUCEWebViewHolder(*webView); 
+
+    p.parameters.neural.neuralDryWet.addListener(this); 
+    webView->navigate("localhost:5173");
+    // webView->bind("valueUpdated",[&p] (const choc::value::ValueView& args)-> choc::value::Value 
+    //     {   
+    //         p.parameters.neural.neuralDryWet.setValueNotifyingHost(args[0].get<double>());
+    //         return {};
+    //     }
+    // );
+
+    // webView->evaluateJavascript("updateValue(" + juce::String((int) (100 * (p.parameters.neural.neuralDryWet.get()))).toStdString() + ");");
+
+
+    postProcessorControls.eq.handle0.sendInitialUpdates();
+    postProcessorControls.eq.handle1.sendInitialUpdates();
+    postProcessorControls.eq.handle2.sendInitialUpdates();
 
     addAndMakeVisible(*webViewHolder); 
     addAndMakeVisible(modelChooser);
-    setSize (640, 360);
+    addAndMakeVisible(postProcessorControls);
+    addAndMakeVisible(raveControls);
+    setSize (1280, 720);
     setResizable(true, true); 
+
+    startTimer(20);
+}
+
+
+
+void AudioPluginAudioProcessorEditor::timerCallback()
+{
+    auto newValue = processorRef.raveProcessor.rmsLevel.load();
+    webView->evaluateJavascript("updateValue(" + juce::String((int) 100 * newValue).toStdString() + ");");
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 {
+    processorRef.parameters.neural.neuralDryWet.removeListener(this); 
 }
+
+void AudioPluginAudioProcessorEditor::parameterValueChanged(int parameterIndex, float newValue)
+{
+    // if (parameterIndex == processorRef.parameters.neural.neuralDryWet.getParameterIndex())
+    // {
+    //     webView->evaluateJavascript("updateValue(" + juce::String((int) 100*newValue).toStdString() + ");");
+    // }
+}
+
+
+void AudioPluginAudioProcessorEditor::parameterGestureChanged(int, bool)
+{
+
+}
+
 
 //==============================================================================
 void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
@@ -35,8 +84,17 @@ void AudioPluginAudioProcessorEditor::resized()
 
     auto area = getLocalBounds(); 
 
-    auto modelChooserArea = area.removeFromBottom((int) (area.toFloat().getHeight() / 6.0f));
+    auto raveArea = area.removeFromLeft(((int) (area.toFloat().getWidth() / 2.0f)));
 
+    auto modelChooserArea = raveArea.removeFromBottom((int) (area.toFloat().getHeight() / 6.0f));
+
+    
     modelChooser.setBounds(modelChooserArea);
-    webViewHolder->setBounds(area); 
+
+    auto raveDryWetSliderArea = raveArea.removeFromBottom((int) (raveArea.toFloat().getHeight() / 6.0f)); 
+    raveControls.setBounds(raveDryWetSliderArea);
+
+    webViewHolder->setBounds(raveArea); 
+
+    postProcessorControls.setBounds(area);
 }

@@ -1,21 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
-AudioPluginAudioProcessor::AudioPluginAudioProcessor()
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
-{
-    state.setProperty("fullModelPath", "E:/audio_dev/rave_effect/models/sol_ordinario.ts", nullptr); 
-    raveProcessor = std::make_unique<RaveProcessor> (state); 
-}
-
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 {
 }
@@ -99,7 +84,11 @@ void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
         numChannels 
     };
 
-    raveProcessor->prepare(processSpec);
+    raveProcessor.prepare(processSpec);
+    postProcessor.prepare (processSpec);
+
+
+
 
 }
 
@@ -107,6 +96,9 @@ void AudioPluginAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    raveProcessor.reset();
+    postProcessor.reset();
+
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -143,7 +135,8 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto block = juce::dsp::AudioBlock<float> (buffer);
     auto context = juce::dsp::ProcessContextReplacing<float> (block);
 
-    raveProcessor->process(context); 
+    raveProcessor.process(context); 
+    postProcessor.process (context);
 
 }
 

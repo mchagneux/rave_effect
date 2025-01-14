@@ -64,44 +64,20 @@ riveCanvas.addEventListener(
             const mouseYRelative = (event.clientY - rect.top) / rect.height;
             console.log(`Relative Mouse Position: (${mouseXRelative.toFixed(2)}, ${mouseYRelative.toFixed(2)})`);     
             posInput.value = 100 * (1 - mouseYRelative);
+            valueUpdated(1 - mouseYRelative);
         }
     },
     false
 );
 
 
+function updateValue(newValue)
+{
+    const inputs = riveInstance.stateMachineInputs('Loop');
+    const posInput = inputs.find(i => i.name === 'Pos');
+    console.log(newValue);
+    posInput.value = newValue;
 
+}
 
-
-
-
-
-
-// <div id="button">
-//     <canvas id="canvas" width="1000" height="500"></canvas>
-// </div>
-// <script src="https://unpkg.com/@rive-app/canvas@2.10.3"></script>
-// <script>
-//     const button = document.getElementById('button');
-
-//     const r = new rive.Rive({
-//         src: 'https://cdn.rive.app/animations/vehicles.riv',
-//         canvas: document.getElementById('canvas'),
-//         autoplay: true,
-//         stateMachines: 'bumpy',
-//         fit: rive.Fit.cover,
-//         onLoad: (_) => {
-//             // Get the inputs via the name of the state machine
-//             const inputs = r.stateMachineInputs('bumpy');
-//             // Find the input you want to set a value for, or trigger
-//             const bumpTrigger = inputs.find(i => i.name === 'bump');
-//             button.onclick = () => bumpTrigger.fire();
-//         },
-//     });
-// </script>
-
-
-// // for (let i = 0; i < 100; i++) 
-// // {
-// riveInstance.setNumberStateAtPath("Slider Pos", 50, "Artboard");
-// // } 
+window.updateValue = updateValue;
