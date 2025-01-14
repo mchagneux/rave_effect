@@ -85,7 +85,7 @@ riveCanvas.addEventListener(
                 
                 const posInput = inputs.find(i => i.name === 'Slider 3 Pos');
                 posInput.value = newValue;
-                gainUpdated(mouseYRelative);
+                gainUpdated(1 - mouseYRelative);
 
             }
             else 

@@ -131,7 +131,7 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                               juce::MidiBuffer& midiMessages)
 {
-    gainProcessor.setGainLinear(parameters.gain.get());
+    gainProcessor.setGainDecibels(parameters.gain.get());
     reverbParameters.wetLevel = parameters.reverbWet.get();
     reverbParameters.dryLevel = 1.0f - parameters.reverbWet.get(); 
     reverbProcessor.setParameters(reverbParameters);
