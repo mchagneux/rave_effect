@@ -72,7 +72,7 @@ private:
     std::unique_ptr<choc::ui::WebView> webView; 
     std::unique_ptr<juce::Component> webViewHolder; 
     PostProcessorControls postProcessorControls;
-    RaveControls raveControls;
+    // RaveControls raveControls;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
 };

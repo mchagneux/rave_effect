@@ -2,7 +2,7 @@
 #include "PluginEditor.h"
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p)
-    : AudioProcessorEditor (&p), processorRef (p), modelChooser(p.apvts.state), postProcessorControls (*this, p.postProcessor), raveControls(*this, p.parameters.neural)
+    : AudioProcessorEditor (&p), processorRef (p), modelChooser(p.apvts.state), postProcessorControls (*this, p.postProcessor) //, raveControls(*this, p.parameters.neural)
 
 {
     juce::ignoreUnused (processorRef);
@@ -39,6 +39,12 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
         }
     );
 
+    webView->bind("enabledUpdated",[&p] (const choc::value::ValueView& args)-> choc::value::Value 
+        {   
+            p.parameters.neural.neuralEnabled.setValueNotifyingHost(args[0].get<bool>());
+            return {};
+        }
+    );
 
     // webView->evaluateJavascript("updateValue(" + juce::String((int) (100 * (p.parameters.neural.neuralDryWet.get()))).toStdString() + ");");
 
@@ -50,7 +56,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     addAndMakeVisible(*webViewHolder); 
     addAndMakeVisible(modelChooser);
     addAndMakeVisible(postProcessorControls);
-    addAndMakeVisible(raveControls);
+    // addAndMakeVisible(raveControls);
     setSize (640, 360);
     setResizable(true, true); 
 
@@ -101,16 +107,19 @@ void AudioPluginAudioProcessorEditor::resized()
 
     auto area = getLocalBounds(); 
 
-    auto topArea = area.removeFromTop((int) (getLocalBounds().toFloat().getHeight() / 6.0f));
-    auto topAreaLeft = topArea.removeFromLeft((int) (topArea.getWidth() / 2)); 
 
-    modelChooser.setBounds(topAreaLeft.reduced((int) (topArea.getWidth() / 4), (int) (topArea.getHeight() / 6)));
-    
-    raveControls.setBounds(topArea); 
+    // auto topArea = area.removeFromTop((int) (getLocalBounds().toFloat().getHeight() / 6.0f));
+    auto areaLeft = area.removeFromLeft((int) (area.getWidth() / 2)); 
+
+    auto topLeft = areaLeft.removeFromTop((int) (getLocalBounds().toFloat().getHeight() / 6.0f));
+
+    modelChooser.setBounds(topLeft.reduced((int) (topLeft.getWidth() / 4), (int) (topLeft.getHeight() / 6)));
+    postProcessorControls.setBounds(areaLeft);
+
+    // raveControls.setBounds(topArea); 
 
     
-    auto postProcessorArea = area.removeFromLeft((int) (getLocalBounds().toFloat().getWidth() / 2.0f));
-    postProcessorControls.setBounds(postProcessorArea);
+    // auto postProcessorArea = areaLeft
 
     webViewHolder->setBounds(area); 
 

@@ -3,7 +3,7 @@ import "./styles.css";
 import * as rive from "@rive-app/canvas";
 
 let eventPlaying = "Idle"; 
-
+let buttonEnabled = "false";
 
 const layout = new rive.Layout({
   fit: rive.Fit.FitWidth, // Change to: rive.Fit.Contain, or Cover
@@ -35,7 +35,7 @@ function cleanUpRive() {
 const riveInstance = new rive.Rive({
   // Load a local riv `clean_the_car.riv` or upload your own!
   artbord: "Slider",
-  src: "slideraugmented.riv",
+  src: "sliderswithbuttons.riv",
   // Be sure to specify the correct state machine (or animation) name
   stateMachines: "Loop", // Name of the State Machine to play
   canvas: riveCanvas,
@@ -52,8 +52,18 @@ const riveInstance = new rive.Rive({
 
 function onRiveEventReceived(riveEvent) {
   const eventData = riveEvent.data;
-  eventPlaying = eventData.name;
-  console.log(eventData.name);
+  const inputs = riveInstance.stateMachineInputs('Loop');
+
+  if (eventData.name == 'ButtonClicked')
+  {
+    // buttonEnabled = !buttonEnabled;
+    const enabledInput = inputs.find(i => i.name === 'wasEnabled');
+    enabledInput.value = !enabledInput.value;
+    enabledUpdated(enabledInput.value);
+  }
+  else{
+    eventPlaying = eventData.name;
+  }
 
 }
 
