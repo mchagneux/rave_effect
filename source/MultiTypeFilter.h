@@ -154,10 +154,10 @@ private:
         // };
 
         executeOnMessageThread ([this]
-                                {
-                                    updateNonRealTimeCoeffs();
-                                    sendSynchronousChangeMessage();
-                                });
+        {
+            updateNonRealTimeCoeffs();
+            sendSynchronousChangeMessage();
+        });
     }
 
     void parameterGestureChanged (int, bool) override {}
@@ -177,20 +177,20 @@ public:
         , type (params.type)
         , editor (editorIn)
         , cutoffAttachment (params.cutoff, [&] (float newCutoff)
-                            {
-                                updateXFromNewCutoff (newCutoff);
-                                repaint();
-                            })
+    {
+        updateXFromNewCutoff (newCutoff);
+        repaint();
+    })
         , gainAttachment (params.gain, [&] (float newGain)
-                          {
-                              updateYFromNewGain (newGain);
-                              repaint();
-                          })
+    {
+        updateYFromNewGain (newGain);
+        repaint();
+    })
         , qAttachment (params.Q, [&] (float newQ)
-                       {
-                           updateYFromNewResonance (newQ);
-                           repaint();
-                       })
+    {
+        updateYFromNewResonance (newQ);
+        repaint();
+    })
     {
         setSize (20, 20);
         type.addListener (this);

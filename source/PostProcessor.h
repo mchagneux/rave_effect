@@ -11,7 +11,6 @@ public:
         : parameters (p)
         , eq (parameters.eq)
     {
-        
     }
 
     ~PostProcessor() {}
@@ -56,7 +55,6 @@ public:
     {
         return eq;
     }
-
 
 private:
     EQ eq;

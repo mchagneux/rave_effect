@@ -1,7 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
 
-
 using SampleType = float;
 
 auto executeOnMessageThread (auto&& fn)
@@ -22,9 +21,9 @@ template <typename... Processors>
 void prepareAll (const juce::dsp::ProcessSpec& spec, Processors&... processors)
 {
     forEach ([&] (auto& proc)
-             {
-                 proc.prepare (spec);
-             },
+    {
+        proc.prepare (spec);
+    },
              processors...);
 }
 
@@ -32,9 +31,9 @@ template <typename... Processors>
 void resetAll (Processors&... processors)
 {
     forEach ([] (auto& proc)
-             {
-                 proc.reset();
-             },
+    {
+        proc.reset();
+    },
              processors...);
 }
 
