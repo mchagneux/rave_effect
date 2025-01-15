@@ -1,6 +1,7 @@
 # JUCE + RAVE + RIVE 
 
 
+This is a quick attempt at running RAVE with a JUCE and Webview front that uses RIVE-rendered graphics. 
 
 ![alt text](demo.PNG)
 
