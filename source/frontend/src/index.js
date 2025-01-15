@@ -3,7 +3,6 @@ import "./styles.css";
 import * as rive from "@rive-app/canvas";
 
 let eventPlaying = "Idle"; 
-let buttonEnabled = "false";
 
 const layout = new rive.Layout({
   fit: rive.Fit.FitWidth, // Change to: rive.Fit.Contain, or Cover
