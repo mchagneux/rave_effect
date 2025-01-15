@@ -20,3 +20,4 @@ npm run dev
 ```
 
 - Launch the program 
+- Load a TorchScript model with the load button.
